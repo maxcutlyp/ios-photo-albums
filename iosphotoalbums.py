@@ -7,13 +7,30 @@ import os
 import glob
 import uuid
 import sqlite3
+import shutil
 
 from typing import Iterable
 
 def main(dcim_dir: str, photos_sqlite_file: str, albumsmetadata_dir: str, output_dir: str) -> int:
-    for uuids in get_uuids_of_photos_in_albums(os.path.expanduser(albumsmetadata_dir)):
-        for filename in get_filenames_from_uuids(uuids, os.path.expanduser(photos_sqlite_file)):
-            print(filename)
+    dcim_dir = os.path.expanduser(dcim_dir)
+    photos_sqlite_file = os.path.expanduser(photos_sqlite_file)
+    albumsmetadata_dir = os.path.expanduser(albumsmetadata_dir)
+    output_dir = os.path.expanduser(output_dir)
+    files_in_albums = set()
+    for title, uuids in get_uuids_of_photos_in_albums(albumsmetadata_dir):
+        dest_dir = os.path.join(output_dir, title)
+        os.makedirs(dest_dir, exist_ok=True)
+        print(f'copying files to {dest_dir}...')
+        for filename in get_filenames_from_uuids(uuids, photos_sqlite_file):
+            shutil.copy2(os.path.join(dcim_dir, filename[5:]), dest_dir)
+            files_in_albums.add(filename[5:])
+    other_dir = os.path.join(output_dir, 'iOSPhotoAlbums_other')
+    print(f'copying rest of the files into {other_dir}...')
+    os.makedirs(other_dir, exist_ok=True)
+    for filename in glob.glob(os.path.join(dcim_dir, '*APPLE', '*')):
+        base, fname = os.path.split(filename)
+        if os.path.join(os.path.split(base)[1], fname) not in files_in_albums:
+            shutil.copy2(filename, other_dir)
     return 0
 
 def get_filenames_from_uuids(uuids: Iterable[str], photos_sqlite_file: str) -> Iterable[str]:
@@ -32,7 +49,7 @@ def get_uuids_of_photos_in_albums(albumsmetadata_dir: str) -> Iterable[Iterable[
             try: title = objects[info['title'].data]
             except KeyError: continue
             if (prompt_yn(f'Create album "{title}"?', True)):
-                yield (str(ux) for ux in _unwrap_uuids(objects[info['assetUUIDs']]))
+                yield title, (str(ux) for ux in _unwrap_uuids(objects[info['assetUUIDs']]))
 
 # courtesy of https://github.com/yoshtec/catplist/, ty <3 (slightly modified)
 def _unwrap_uuids(b: bytes) -> Iterable[uuid.UUID]:
