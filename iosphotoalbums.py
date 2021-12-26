@@ -6,14 +6,22 @@ import plistlib
 import os
 import glob
 import uuid
+import sqlite3
 
 from typing import Iterable
 
 def main(dcim_dir: str, photos_sqlite_file: str, albumsmetadata_dir: str, output_dir: str) -> int:
     for uuids in get_uuids_of_photos_in_albums(os.path.expanduser(albumsmetadata_dir)):
-        for image_uuid in uuids:
-            print(image_uuid)
+        for filename in get_filenames_from_uuids(uuids, os.path.expanduser(photos_sqlite_file)):
+            print(filename)
     return 0
+
+def get_filenames_from_uuids(uuids: Iterable[str], photos_sqlite_file: str) -> Iterable[str]:
+    connection = sqlite3.connect(photos_sqlite_file)
+    cursor = connection.cursor()
+    formatted_uuids = ','.join(f'"{image_uuid.upper()}"' for image_uuid in uuids)
+    for row in cursor.execute(f'SELECT ZDIRECTORY, ZFILENAME FROM ZASSET WHERE ZUUID IN ({formatted_uuids})'):
+        yield os.path.join(row[0], row[1])
 
 def get_uuids_of_photos_in_albums(albumsmetadata_dir: str) -> Iterable[Iterable[str]]:
     for albummetadata_file in glob.glob(os.path.join(albumsmetadata_dir, '*.albummetadata')):
