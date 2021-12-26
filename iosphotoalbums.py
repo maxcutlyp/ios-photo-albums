@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-def main(dcim_dir: str, photos_sqlite_file: str, output_dir: str) -> int:
+def main(dcim_dir: str, photos_sqlite_file: str, albumsmetadata_dir: str, output_dir: str) -> int:
     return 0
 
 if __name__ == '__main__':
@@ -14,4 +14,4 @@ if __name__ == '__main__':
     parser.add_argument('-o', dest='output_dir', metavar='output', type=str, help='path/to/desired/output', default='.')
 
     args = parser.parse_args()
-    sys.exit(main(args.dcim_dir, args.photos_sqlite_file, args.output_dir))
+    sys.exit(main(args.dcim_dir, args.photos_sqlite_file, albumsmetadata_dir, args.output_dir))
