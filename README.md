@@ -1,3 +1,10 @@
+# iosphotoalbums.py
+A simple tool to convert iOS Photos app albums to folders on disk.
+
+You may be familiar with the DCIM folder that you see when you plug your iPhone into your computer. You may have noticed that the folders and filenames in this folder are almost completely unrelated to the albums that show up in the Photos app.
+
+This script will copy or move the images from this DCIM folder into real folders on your computer according to the albums they belong to.
+
 ## Prerequisites
 You will need `libimobiledevice` to get the data required for the script.
 - On Debian and derivatives, these packages are: `ideviceinstaller python-imobiledevice libimobiledevice-utils libimobiledevice4 libplist2 python-plist ifuse`
